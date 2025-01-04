@@ -2,9 +2,14 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"math/rand"
 	"time"
+
+	"github.com/gorilla/websocket"
 )
+
+const recieverEndpoint = "ws://localhost:50000"
 
 type OBUData struct {
 	ObuID int     `json:"obuId"`
@@ -33,7 +38,10 @@ func gentOBUIDs(num int) []int {
 func main() {
 	lat, long := gentLocation()
 	obuIds := gentOBUIDs(20)
-
+	conn, _, err := websocket.DefaultDialer.Dial(recieverEndpoint, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
 	for {
 		for i := 0; i < len(obuIds); i++ {
 			data := &OBUData{
@@ -42,8 +50,9 @@ func main() {
 				Long:  long,
 			}
 			fmt.Println(data)
-			time.Sleep(time.Second)
+			conn.WriteJSON(data)
 		}
+		time.Sleep(time.Second)
 	}
 }
 
