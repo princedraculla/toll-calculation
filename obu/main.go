@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"github/princedraculla/toll-calculation/types"
 	"log"
 	"math/rand"
@@ -44,7 +43,7 @@ func main() {
 				Lat:   lat,
 				Long:  long,
 			}
-			fmt.Println(data)
+
 			conn.WriteJSON(data)
 		}
 		time.Sleep(time.Second)
