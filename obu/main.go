@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"github/princedraculla/toll-calculation/types"
 	"log"
 	"math/rand"
 	"time"
@@ -9,13 +10,7 @@ import (
 	"github.com/gorilla/websocket"
 )
 
-const recieverEndpoint = "ws://localhost:50000"
-
-type OBUData struct {
-	ObuID int     `json:"obuId"`
-	Lat   float64 `json:"lat"`
-	Long  float64 `json:"long"`
-}
+const recieverEndpoint = "ws://localhost:50000/ws"
 
 func genCordinate() float64 {
 	n := float64(rand.Intn(100) + 1)
@@ -44,7 +39,7 @@ func main() {
 	}
 	for {
 		for i := 0; i < len(obuIds); i++ {
-			data := &OBUData{
+			data := types.OBUData{
 				ObuID: obuIds[i],
 				Lat:   lat,
 				Long:  long,
