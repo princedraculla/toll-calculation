@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"github/princedraculla/toll-calculation/types"
 	"log"
@@ -10,18 +11,15 @@ import (
 	"github.com/gorilla/websocket"
 )
 
+var kafkaTopic = "obudata"
+
 type DataReceiver struct {
 	msgch chan types.OBUData
 	conn  *websocket.Conn
+	prod  *kafka.Producer
 }
 
 func NewWsHandler() *DataReceiver {
-	return &DataReceiver{
-		msgch: make(chan types.OBUData, 128),
-	}
-}
-
-func main() {
 	p, err := kafka.NewProducer(&kafka.ConfigMap{"bootstrap.servers": "localhost"})
 	if err != nil {
 		panic(err)
@@ -42,23 +40,34 @@ func main() {
 			}
 		}
 	}()
+	return &DataReceiver{
+		msgch: make(chan types.OBUData, 128),
+		prod:  p,
+	}
+}
+
+func main() {
 
 	// Produce messages to topic (asynchronously)
-	topic := "myTopic"
-	for _, word := range []string{"Welcome", "to", "the", "Confluent", "Kafka", "Golang", "client"} {
-		p.Produce(&kafka.Message{
-			TopicPartition: kafka.TopicPartition{Topic: &topic, Partition: kafka.PartitionAny},
-			Value:          []byte(word),
-		}, nil)
-	}
 
 	// Wait for message deliveries before shutting down
-	p.Flush(15 * 1000)
 
 	wsHandler := NewWsHandler()
 	http.HandleFunc("/ws", wsHandler.WsHandler)
 	http.ListenAndServe(":50000", nil)
 
+}
+
+func (dr *DataReceiver) ProduceData(data *types.OBUData) error {
+	b, err := json.Marshal(data)
+	if err != nil {
+		return err
+	}
+	err = dr.prod.Produce(&kafka.Message{
+		TopicPartition: kafka.TopicPartition{Topic: &kafkaTopic, Partition: kafka.PartitionAny},
+		Value:          b,
+	}, nil)
+	return err
 }
 
 func (dr *DataReceiver) WsHandler(w http.ResponseWriter, r *http.Request) {
@@ -81,7 +90,10 @@ func (dr *DataReceiver) WsLoop() {
 		if err := dr.conn.ReadJSON(&data); err != nil {
 			log.Println("error while receiving Data : ", err)
 		}
+		if err := dr.ProduceData(&data); err != nil {
+			fmt.Println("error while producing data in kafka: ", err)
+		}
 		fmt.Printf("data recieving, contains OBU ID [%d], :: <lat %.2f, long %.2f> its recived \n", data.ObuID, data.Lat, data.Long)
-		dr.msgch <- data
+		//dr.msgch <- data
 	}
 }

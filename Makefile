@@ -3,7 +3,7 @@ obu:
 	@./bin/obu
 
 reciever:
-	@go build -o bin/receiver data_reciever/main.go
+	@go build -o bin/receiver ./data_reciever
 	@./bin/receiver
 
 
