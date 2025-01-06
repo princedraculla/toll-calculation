@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
 	"github/princedraculla/toll-calculation/types"
 
 	"github.com/confluentinc/confluent-kafka-go/v2/kafka"
@@ -18,7 +17,7 @@ type KafkaProducer struct {
 	producer *kafka.Producer
 }
 
-func NewKafkaProducer() (*KafkaProducer, error) {
+func NewKafkaProducer() (DataProducer, error) {
 	p, err := kafka.NewProducer(&kafka.ConfigMap{"bootstrap.servers": "localhost"})
 	if err != nil {
 		return nil, err
@@ -28,9 +27,9 @@ func NewKafkaProducer() (*KafkaProducer, error) {
 			switch ev := e.(type) {
 			case *kafka.Message:
 				if ev.TopicPartition.Error != nil {
-					fmt.Printf("Delivery failed %v\n", ev.TopicPartition)
+					//fmt.Printf("Delivery failed %v\n", ev.TopicPartition)
 				} else {
-					fmt.Printf("Delivery message to %v\n", ev.TopicPartition)
+					//fmt.Printf("Delivery message to %v\n", ev.TopicPartition)
 				}
 
 			}

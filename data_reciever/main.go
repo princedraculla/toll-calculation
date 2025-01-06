@@ -16,10 +16,15 @@ type DataReceiver struct {
 }
 
 func NewWsHandler() *DataReceiver {
-	p, err := NewKafkaProducer()
+	var (
+		p   DataProducer
+		err error
+	)
+	p, err = NewKafkaProducer()
 	if err != nil {
 		fmt.Printf("intialing error for kafka Producer: %v\n", err)
 	}
+	p = NewLogMiddleWare(p)
 	return &DataReceiver{
 		msgch: make(chan types.OBUData, 128),
 		prod:  p,
@@ -62,10 +67,10 @@ func (dr *DataReceiver) WsLoop() {
 		if err := dr.conn.ReadJSON(&data); err != nil {
 			log.Println("error while receiving Data : ", err)
 		}
-		if err := dr.prod.ProduceData(&data); err != nil {
+		if err := dr.Receiver(&data); err != nil {
 			fmt.Println("error while producing data in kafka: ", err)
 		}
-		fmt.Printf("data recieving, contains OBU ID [%d], :: <lat %.2f, long %.2f> its recived \n", data.ObuID, data.Lat, data.Long)
+
 		//dr.msgch <- data
 	}
 }
