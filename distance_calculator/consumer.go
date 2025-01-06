@@ -1,18 +1,21 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
+	"github/princedraculla/toll-calculation/types"
 
 	"github.com/confluentinc/confluent-kafka-go/v2/kafka"
 	"github.com/sirupsen/logrus"
 )
 
 type KafkaConsumer struct {
-	Consumer  *kafka.Consumer
-	IsRunning bool
+	Consumer    *kafka.Consumer
+	IsRunning   bool
+	CalcService CalculateServicer
 }
 
-func NewKafkaConsumer(topic string) (*KafkaConsumer, error) {
+func NewKafkaConsumer(topic string, svc CalculateServicer) (*KafkaConsumer, error) {
 	c, err := kafka.NewConsumer(&kafka.ConfigMap{
 		"bootstrap.servers": "localhost",
 		"group.id":          "myGroup",
@@ -28,7 +31,8 @@ func NewKafkaConsumer(topic string) (*KafkaConsumer, error) {
 	}
 
 	return &KafkaConsumer{
-		Consumer: c,
+		Consumer:    c,
+		CalcService: svc,
 	}, nil
 }
 
@@ -45,6 +49,15 @@ func (c *KafkaConsumer) readMessageLoop() {
 			logrus.Errorf("error while consuming message: %s", err)
 			continue
 		}
-		fmt.Println(msg.Value)
+		var data types.OBUData
+		if err := json.Unmarshal(msg.Value, &data); err != nil {
+			logrus.Errorf("can unmarshal to obu data with error: %s\n", err)
+			continue
+		}
+		distance, err := c.CalcService.CalculateDistance(data)
+		if err != nil {
+			logrus.Errorf("calculation error with error :%s\n", err)
+		}
+		fmt.Printf("ditance is : %.2f ", distance)
 	}
 }
