@@ -12,13 +12,13 @@ type LogMiddleWare struct {
 	next DataProducer
 }
 
-func NewLogMiddleWare(next DataProducer) DataProducer {
+func NewLogMiddleWare(next DataProducer) *LogMiddleWare {
 	return &LogMiddleWare{
 		next: next,
 	}
 }
 
-func (l *LogMiddleWare) ProduceData(data *types.OBUData) error {
+func (lp *LogMiddleWare) ProduceData(data *types.OBUData) error {
 	defer func(start time.Time) {
 		fmt.Println("produce data function in log middleware")
 		logrus.WithFields(logrus.Fields{
@@ -28,5 +28,5 @@ func (l *LogMiddleWare) ProduceData(data *types.OBUData) error {
 			"took":  time.Since(start),
 		}).Info("producing data from kafka")
 	}(time.Now())
-	return l.next.ProduceData(data)
+	return lp.next.ProduceData(data)
 }
