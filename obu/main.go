@@ -30,13 +30,13 @@ func gentOBUIDs(num int) []int {
 }
 
 func main() {
-	lat, long := gentLocation()
 	obuIds := gentOBUIDs(20)
 	conn, _, err := websocket.DefaultDialer.Dial(recieverEndpoint, nil)
 	if err != nil {
 		log.Fatal(err)
 	}
 	for {
+		lat, long := gentLocation()
 		for i := 0; i < len(obuIds); i++ {
 			data := types.OBUData{
 				ObuID: obuIds[i],
