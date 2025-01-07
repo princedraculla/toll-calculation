@@ -3,23 +3,23 @@ package main
 import (
 	"encoding/json"
 	"flag"
+	"fmt"
 	"github/princedraculla/toll-calculation/types"
 	"net/http"
 )
 
 func main() {
 	listenAddr := flag.String("listenaddr", ":5000", "http server")
+	flag.Parse()
 	store := NewMemoryStore()
-
-	var svc Aggregator
-
-	svc = NewInvoiceAggregator(store)
+	var svc = NewInvoiceAggregator(store)
 
 	makeHttpTransport(*listenAddr, svc)
 }
 
 func makeHttpTransport(listenAdrr string, svc Aggregator) {
-
+	fmt.Println("server is running at ", listenAdrr)
+	http.HandleFunc("/aggregate", HandlerAggregate(svc))
 	if err := http.ListenAndServe(listenAdrr, HandlerAggregate(svc)); err != nil {
 		panic(err)
 	}
