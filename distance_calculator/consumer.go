@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
 	"github/princedraculla/toll-calculation/types"
 
 	"github.com/confluentinc/confluent-kafka-go/v2/kafka"
@@ -58,6 +57,6 @@ func (c *KafkaConsumer) readMessageLoop() {
 		if err != nil {
 			logrus.Errorf("calculation error with error :%s\n", err)
 		}
-		fmt.Printf("ditance is : %.2f ", distance)
+		_ = distance
 	}
 }
