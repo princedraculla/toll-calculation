@@ -1,15 +1,30 @@
 package main
 
+import (
+	"github/princedraculla/toll-calculation/types"
+	"time"
+
+	"github.com/sirupsen/logrus"
+)
+
 type LogMiddleWareConsumer struct {
-	next DataConsumer
+	next CalculateServicer
 }
 
-func NewLogMiddleWareConsumer(next DataConsumer) *LogMiddleWareConsumer {
+func NewLogMiddleWareConsumer(next CalculateServicer) *LogMiddleWareConsumer {
 	return &LogMiddleWareConsumer{
 		next: next,
 	}
 }
 
-func (lc *LogMiddleWareConsumer) ConsumerData(data any) error {
-	return nil
+func (lm *LogMiddleWareConsumer) CalculateDistance(data types.OBUData) (dist float64, err error) {
+	defer func(start time.Time) {
+		logrus.WithFields(logrus.Fields{
+			"took":     time.Since(start),
+			"error":    err,
+			"distance": dist,
+		}).Info("calculation of distance")
+	}(time.Now())
+
+	return lm.next.CalculateDistance(data)
 }
