@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"github/princedraculla/toll-calculation/types"
 	"time"
 
@@ -20,7 +19,6 @@ func NewLogMiddleWare(next DataProducer) *LogMiddleWare {
 
 func (lp *LogMiddleWare) ProduceData(data *types.OBUData) error {
 	defer func(start time.Time) {
-		fmt.Println("produce data function in log middleware")
 		logrus.WithFields(logrus.Fields{
 			"ObuId": data.ObuID,
 			"lat":   data.Lat,
