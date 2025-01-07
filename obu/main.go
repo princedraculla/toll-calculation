@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"github/princedraculla/toll-calculation/types"
 	"log"
 	"math/rand"
@@ -36,15 +37,17 @@ func main() {
 		log.Fatal(err)
 	}
 	for {
-		lat, long := gentLocation()
 		for i := 0; i < len(obuIds); i++ {
+			lat, long := gentLocation()
 			data := types.OBUData{
 				ObuID: obuIds[i],
 				Lat:   lat,
 				Long:  long,
 			}
 
-			conn.WriteJSON(data)
+			if err := conn.WriteJSON(data); err != nil {
+				fmt.Printf("error while generating obu data : %s", err)
+			}
 		}
 		time.Sleep(time.Second)
 	}
