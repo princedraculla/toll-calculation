@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github/princedraculla/toll-calculation/types"
 	"net/http"
+	"strconv"
 )
 
 func main() {
@@ -23,6 +24,7 @@ func main() {
 func makeHttpTransport(listenAdrr string, svc Aggregator) {
 	fmt.Println("server is running at ", listenAdrr)
 	http.HandleFunc("/aggregate", HandlerAggregate(svc))
+	http.HandleFunc("/invoice", handlerGetInvoice(svc))
 	if err := http.ListenAndServe(listenAdrr, HandlerAggregate(svc)); err != nil {
 		panic(err)
 	}
@@ -40,6 +42,19 @@ func HandlerAggregate(svc Aggregator) http.HandlerFunc {
 			writeJSON(w, http.StatusInternalServerError, map[string]string{"error": err.Error()})
 			return
 		}
+	}
+}
+
+func handlerGetInvoice(svc Aggregator) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		obuId, err := strconv.Atoi(r.URL.Query()["obu"][0])
+		if err != nil {
+			writeJSON(w, http.StatusBadRequest, map[string]string{"error": "invalid url"})
+			return
+		}
+		_ = svc
+		_ = obuId
+
 	}
 }
 
