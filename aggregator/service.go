@@ -1,6 +1,8 @@
 package main
 
-import "github/princedraculla/toll-calculation/types"
+import (
+	"github/princedraculla/toll-calculation/types"
+)
 
 type Aggregator interface {
 	AggregateDistance(types.Distance) error
@@ -14,7 +16,7 @@ type InvoiceAggregator struct {
 	store Store
 }
 
-func NewInvoiceAggregator(storage Store) *InvoiceAggregator {
+func NewInvoiceAggregator(storage Store) Aggregator {
 	return &InvoiceAggregator{
 		store: storage,
 	}
