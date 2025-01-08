@@ -27,3 +27,23 @@ func (lm *LogMiddleWareAggregator) AggregateDistance(dist types.Distance) (err e
 	err = lm.next.AggregateDistance(dist)
 	return err
 }
+
+func (lm *LogMiddleWareAggregator) CalculateInvoice(id int) (invoice *types.Invoice, err error) {
+	var (
+		distance float64
+		amount   float64
+	)
+	defer func(start time.Time) {
+		if invoice != nil {
+			distance = invoice.TotalDistance
+			amount = invoice.TotalAmount
+		}
+		logrus.WithFields(logrus.Fields{
+			"took":     time.Since(start),
+			"err":      err,
+			"distance": distance,
+			"amount":   amount,
+		}).Info("CalculateInvoice")
+	}(time.Now())
+	return lm.next.CalculateInvoice(id)
+}
