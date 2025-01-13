@@ -49,7 +49,7 @@ func main() {
 				fmt.Printf("error while generating obu data : %s", err)
 			}
 		}
-		time.Sleep(time.Second)
+		time.Sleep(time.Second * 3)
 	}
 }
 
