@@ -7,8 +7,6 @@ import (
 	"github/princedraculla/toll-calculation/types"
 	"net/http"
 	"strconv"
-
-	"github.com/sirupsen/logrus"
 )
 
 func main() {
@@ -49,16 +47,18 @@ func HandlerAggregate(svc Aggregator) http.HandlerFunc {
 
 func handlerGetInvoice(svc Aggregator) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		_, ok := r.URL.Query()["obu"]
+		if !ok {
+			writeJSON(w, http.StatusBadRequest, map[string]string{"error": "obu ID not provided"})
+			return
+		}
 		obuId, err := strconv.Atoi(r.URL.Query()["obu"][0])
-		writeJSON(w, http.StatusOK, map[string]any{" value recieved from query": r.URL.Query()["obu"][0]})
 
 		if err != nil {
 			writeJSON(w, http.StatusBadRequest, map[string]string{"error": err.Error()})
 			return
 		}
-		if err := writeJSON(w, http.StatusOK, map[string]int{"obu id in params": obuId}); err != nil {
-			logrus.Errorf("error while sending id to front: %v", err)
-		}
+
 		invoice, err := svc.CalculateInvoice(obuId)
 		fmt.Println(invoice)
 		if err != nil {
