@@ -5,12 +5,16 @@ import (
 	"flag"
 	"fmt"
 	"github/princedraculla/toll-calculation/types"
+	"net"
 	"net/http"
 	"strconv"
+
+	"google.golang.org/grpc"
 )
 
 func main() {
-	listenAddr := flag.String("listenaddr", ":5000", "http server")
+	HTTPlistenAddr := flag.String("http", ":5000", "http server")
+	GRPClistenAddr := flag.String("grpc", ":5001", "http server")
 	flag.Parse()
 	store := NewMemoryStore()
 
@@ -18,11 +22,27 @@ func main() {
 
 	svc = NewLogMiddleWareAggregator(svc)
 
-	makeHttpTransport(*listenAddr, svc)
+	go makeGRPCTransport(*GRPClistenAddr, svc)
+	makeHttpTransport(*HTTPlistenAddr, svc)
+}
+
+func makeGRPCTransport(listedAddr string, svc Aggregator) error {
+	fmt.Println("GRPC server is running at ", listedAddr)
+
+	ln, err := net.Listen("TCP", listedAddr)
+	if err != nil {
+		return err
+	}
+
+	defer ln.Close()
+
+	server := grpc.NewServer([]grpc.ServerOption{}...)
+	types.RegisterAggregatorServer(server, NewGRPCAggregatorServer(svc))
+	return server.Serve(ln)
 }
 
 func makeHttpTransport(listenAdrr string, svc Aggregator) {
-	fmt.Println("server is running at ", listenAdrr)
+	fmt.Println("http server is running at ", listenAdrr)
 	http.HandleFunc("/aggregate", HandlerAggregate(svc))
 	http.HandleFunc("/invoice", handlerGetInvoice(svc))
 	if err := http.ListenAndServe(listenAdrr, nil); err != nil {
